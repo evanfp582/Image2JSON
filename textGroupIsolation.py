@@ -12,8 +12,10 @@ def groupText(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
-    dilated = cv2.dilate(thresh, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 30))
+    dilated = cv2.dilate(thresh, kernel, iterations=4)
+    cv2.imshow("Dilated", cv2.resize(dilated, (0, 0), fx=0.2, fy=0.2))
+    cv2.waitKey(0)
     contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     file = open("recognized.txt", "a")
     for contour in contours:
