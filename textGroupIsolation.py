@@ -3,7 +3,7 @@ import pytesseract
 import json
 
 
-pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = "D:/Program Files (x86)/Tesseract-OCR/tesseract.exe"
 
 
 def getContours(img, kernel_size):
@@ -48,6 +48,28 @@ def groupText(imgs):
                 sections.append([x1, y1, w1, h1])
 
             sections.reverse()
+
+            rect = cv2.rectangle(cropped, (x1, y1), (x1 + w1, y1 + h1), (255, 0, 0), 2)
+            sections.append([x1, y1, w1, h1])
+
+        sections.reverse()
+        for i in range(len(sections)):
+            x1, y1, _, _ = sections[i]
+            cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
+
+        imageIndex = findIngIndex(sections)
+        print(imageIndex)
+
+        cv2.imshow("Cropped", cv2.resize(cropped, (0, 0), fx=0.3, fy=0.3))
+        key = cv2.waitKey(0)
+        if key == 27:
+            cv2.destroyAllWindows()
+
+        if sections_num != len(sections):
+            meanings = {}
+            types = {}
+            sections_num = len(sections)
+
             for i in range(len(sections)):
                 x1, y1, _, _ = sections[i]
                 cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
@@ -108,3 +130,11 @@ def groupText(imgs):
                 file.write("\n")
 
     file.close()
+
+
+def findIngIndex(sections):
+    ing = sorted(sections, key=lambda x: x[2])[2]
+    for i, section in enumerate(sections):
+        if section == ing:
+            return i
+
