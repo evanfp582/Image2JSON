@@ -39,11 +39,11 @@ def groupText(img):
             if w1 < 100:
                 continue
             rect = cv2.rectangle(cropped, (x1, y1), (x1 + w1, y1 + h1), (255, 0, 0), 2)
-            sections.append([x1, y1])
+            sections.append([x1, y1, w1, h1])
 
         sections.reverse()
         for i in range(len(sections)):
-            x1, y1 = sections[i]
+            x1, y1, _, _ = sections[i]
             cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
 
         cv2.imshow("Cropped", cv2.resize(cropped, (0, 0), fx=0.3, fy=0.3))
@@ -58,7 +58,18 @@ def groupText(img):
                 meaning = input(f"What is in section {i}?")
                 meanings[i] = meaning
 
-        print(meanings)
+        parsed_info = {}
+        for i in range(len(sections)):
+            meaning = meanings.get(i)
+            x1, y1, w1, h1 = sections[i]
+            area = img[y + y1:y + y1 + h1, x + x1:x + x1 + w1]
+            text = pytesseract.image_to_string(area)
+            if meaning in parsed_info.keys():
+                parsed_info[meaning] = parsed_info.get(meaning) + text
+            else:
+                parsed_info[meaning] = text
+
+        print(parsed_info)
         text = pytesseract.image_to_string(cropped)
         if len(text) > 0:
             file.write(text)
