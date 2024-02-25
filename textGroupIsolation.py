@@ -2,8 +2,7 @@ import cv2
 import pytesseract
 import json
 
-
-pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = "D:/Program Files (x86)/Tesseract-OCR/tesseract.exe"
 
 
 def getContours(img, kernel_size):
@@ -30,9 +29,9 @@ def groupText(imgs):
         file = open("recognized.txt", "a")
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            if abs(width-w) < 50 or w < 600:
+            if abs(width - w) < 50 or w < 600:
                 continue
-            rect = cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cropped = img[y:y + h, x:x + w]
             test = pytesseract.image_to_string(cropped)
             if test == "":
@@ -48,11 +47,13 @@ def groupText(imgs):
                 sections.append([x1, y1, w1, h1])
 
             sections.reverse()
+            print(len(sections))
+            imageIndex = findIngIndex(sections)
             for i in range(len(sections)):
                 x1, y1, _, _ = sections[i]
                 cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
 
-            if len(sections) not in history.keys():
+            if (len(sections), imageIndex) not in history.keys():
                 tmp = cropped.copy()
                 cv2.imshow("Cropped", cv2.resize(tmp, (0, 0), fx=0.3, fy=0.3))
                 key = cv2.waitKey(0)
@@ -73,11 +74,11 @@ def groupText(imgs):
                     types[i] = store_type
                     meanings[i] = meaning
 
-                history[len(sections)] = [meanings, types]
+                history[(len(sections), imageIndex)] = [meanings, types]
 
             parsed_info = {}
-            meanings = history.get(len(sections))[0]
-            types = history.get(len(sections))[1]
+            meanings = history.get((len(sections), imageIndex))[0]
+            types = history.get((len(sections), imageIndex))[1]
             for i in range(len(sections)):
                 meaning = meanings.get(i)
                 store_type = types.get(i)
@@ -88,8 +89,8 @@ def groupText(imgs):
                 if store_type == "array":
                     parsed_info[meaning] = text.strip().split("\n")
                 elif meaning in parsed_info.keys():
-                    text = text.strip().replace("\n", " ")\
-                        .replace("@", "1/2").replace("^", "2/3").replace("*", "1/3")\
+                    text = text.strip().replace("\n", " ") \
+                        .replace("@", "1/2").replace("^", "2/3").replace("*", "1/3") \
                         .replace("$", "1/4").replace("_", "3/4")
                     parsed_info[meaning] = parsed_info.get(meaning) + text
                 else:
@@ -108,3 +109,16 @@ def groupText(imgs):
                 file.write("\n")
 
     file.close()
+
+
+def findIngIndex(sections):
+    if len(sections) < 3:
+        return 0
+    print(sections)
+    img = sorted(sections, key=lambda x: x[2])[2]
+    print(img)
+    for i, section in enumerate(sections):
+        print("Section: ", section)
+        if section == img:
+            print("Hello? ", i)
+            return i
