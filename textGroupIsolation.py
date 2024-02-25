@@ -49,10 +49,7 @@ def groupText(imgs):
 
             sections.reverse()
 
-            rect = cv2.rectangle(cropped, (x1, y1), (x1 + w1, y1 + h1), (255, 0, 0), 2)
-            sections.append([x1, y1, w1, h1])
 
-        sections.reverse()
         for i in range(len(sections)):
             x1, y1, _, _ = sections[i]
             cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
@@ -133,8 +130,12 @@ def groupText(imgs):
 
 
 def findIngIndex(sections):
-    ing = sorted(sections, key=lambda x: x[2])[2]
+    print(sections)
+    img = sorted(sections, key=lambda x: x[2])[2]
+    print(img)
     for i, section in enumerate(sections):
-        if section == ing:
+        print("Section: ", section)
+        if section == img:
+            print("Hello? ", i)
             return i
 
