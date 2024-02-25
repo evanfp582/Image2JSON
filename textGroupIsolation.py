@@ -2,7 +2,7 @@ import cv2
 import pytesseract
 import json
 
-pytesseract.pytesseract.tesseract_cmd = "D:/Program Files (x86)/Tesseract-OCR/tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
 
 
 def getContours(img, kernel_size):
@@ -20,8 +20,8 @@ def groupText(imgs):
     file = open("recognized.txt", "w+")
     file.write("")
     file.close()
-    sections_num = 0
     history = {}
+    prev_sections = 100
     for img in imgs:
         height, width, _ = img.shape
 
@@ -76,7 +76,20 @@ def groupText(imgs):
 
                 history[(len(sections), imageIndex)] = [meanings, types]
 
-            parsed_info = {}
+            file_write = True
+            if len(sections) < 4 and prev_sections > 3:
+                file_write = False
+                parsed_info = {}
+            elif len(sections) < 4:
+                file_write = False
+            elif len(sections) > 3 and prev_sections < 4:
+                text = json.dumps(parsed_info)
+                file.write(text)
+                file.write("\n")
+                parsed_info = {}
+            else:
+                parsed_info = {}
+            prev_sections = len(sections)
             meanings = history.get((len(sections), imageIndex))[0]
             types = history.get((len(sections), imageIndex))[1]
             for i in range(len(sections)):
@@ -104,7 +117,7 @@ def groupText(imgs):
                 print(parsed_info.get(sects))
 
             text = json.dumps(parsed_info)
-            if len(text) > 0:
+            if len(text) > 0 and file_write:
                 file.write(text)
                 file.write("\n")
 
@@ -114,11 +127,11 @@ def groupText(imgs):
 def findIngIndex(sections):
     if len(sections) < 3:
         return 0
-    print(sections)
+    # print(sections)
     img = sorted(sections, key=lambda x: x[2])[2]
-    print(img)
+    # print(img)
     for i, section in enumerate(sections):
-        print("Section: ", section)
+        # print("Section: ", section)
         if section == img:
-            print("Hello? ", i)
+            # print("Hello? ", i)
             return i
