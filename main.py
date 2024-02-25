@@ -1,10 +1,14 @@
 import textGroupIsolation
 import cv2
+import os
 
 
 def main():
-    img = cv2.imread("testImages/20240224_122308.jpg")
-    textGroupIsolation.groupText(img)
+    dir = "./testImages"
+    imgs = []
+    for path in os.listdir(dir):
+        imgs.append(cv2.imread(dir + "/" + path))
+    textGroupIsolation.groupText(imgs)
   
 
 if __name__ == "__main__":
