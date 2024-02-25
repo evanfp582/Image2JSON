@@ -65,11 +65,14 @@ def groupText(img):
             area = img[y + y1:y + y1 + h1, x + x1:x + x1 + w1]
             text = pytesseract.image_to_string(area)
             if meaning in parsed_info.keys():
-                parsed_info[meaning] = parsed_info.get(meaning) + text
+                parsed_info[meaning] = parsed_info.get(meaning) + text.replace("\n", "")
             else:
-                parsed_info[meaning] = text
+                parsed_info[meaning] = text.replace("\n", " ")
 
-        print(parsed_info)
+        for sects in parsed_info.keys():
+            print(sects + ":\n")
+            print(parsed_info.get(sects))
+
         text = pytesseract.image_to_string(cropped)
         if len(text) > 0:
             file.write(text)
