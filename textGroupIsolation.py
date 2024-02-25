@@ -11,8 +11,8 @@ def getContours(img, kernel_size):
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))
     dilated = cv2.dilate(thresh, kernel, iterations=4)
-    cv2.imshow("Dilated", cv2.resize(dilated, (0,0), fx=0.2, fy=0.2))
-    cv2.waitKey(0)
+    # cv2.imshow("Dilated", cv2.resize(dilated, (0,0), fx=0.2, fy=0.2))
+    # cv2.waitKey(0)
     contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     return contours
 
@@ -22,6 +22,7 @@ def groupText(imgs):
     file.write("")
     file.close()
     sections_num = 0
+    history = {}
     for img in imgs:
         height, width, _ = img.shape
 
@@ -51,16 +52,14 @@ def groupText(imgs):
                 x1, y1, _, _ = sections[i]
                 cv2.putText(cropped, str(i), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5, cv2.LINE_AA)
 
-            tmp = cropped.copy()
-            cv2.imshow("Cropped", cv2.resize(tmp, (0, 0), fx=0.3, fy=0.3))
-            key = cv2.waitKey(0)
-            if key == 27:
-                cv2.destroyAllWindows()
-
-            if sections_num != len(sections):
+            if len(sections) not in history.keys():
+                tmp = cropped.copy()
+                cv2.imshow("Cropped", cv2.resize(tmp, (0, 0), fx=0.3, fy=0.3))
+                key = cv2.waitKey(0)
+                if key == 27:
+                    cv2.destroyAllWindows()
                 meanings = {}
                 types = {}
-                sections_num = len(sections)
                 for i in range(len(sections)):
                     meaning = input(f"What is in section {i}?")
                     store_type = input(f"How do you want to store the {meaning} section? ([string], array): ")
@@ -74,12 +73,17 @@ def groupText(imgs):
                     types[i] = store_type
                     meanings[i] = meaning
 
+                history[len(sections)] = [meanings, types]
+
             parsed_info = {}
+            meanings = history.get(len(sections))[0]
+            types = history.get(len(sections))[1]
             for i in range(len(sections)):
                 meaning = meanings.get(i)
                 store_type = types.get(i)
                 x1, y1, w1, h1 = sections[i]
                 area = img[y + y1:y + y1 + h1, x + x1:x + x1 + w1]
+
                 text = pytesseract.image_to_string(area)
                 if store_type == "array":
                     parsed_info[meaning] = text.strip().split("\n")
